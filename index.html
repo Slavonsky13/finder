@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FINDER</title>
+<style>
+html,body{margin:0;height:100%;background:#000;color:#38ff6a;font-family:'Courier New',monospace;overflow:hidden}
+#stage{height:100%;display:flex;align-items:center;justify-content:center}
+#phone{height:min(96vh,calc(94vw*2.16));aspect-ratio:9/19.5;border:3px solid #38ff6a88;border-radius:38px;background:#020a04;box-shadow:0 0 40px #38ff6a44;position:relative;overflow:hidden;display:flex;flex-direction:column}
+#pages{flex:1;display:flex;width:300%;transition:transform .35s ease;min-height:0}
+.page{width:33.3333%;height:100%;box-sizing:border-box;padding:16px 12px 8px;display:flex;flex-direction:column;align-items:center;min-height:0}
+#dots{height:34px;display:flex;justify-content:center;align-items:center;gap:12px}
+.dot{width:10px;height:10px;border-radius:50%;border:1px solid #38ff6a;cursor:pointer}.dot.on{background:#38ff6a;box-shadow:0 0 8px #38ff6a}
+canvas#c{width:100%;aspect-ratio:1;border-radius:50%;box-shadow:0 0 30px #38ff6a55,inset 0 0 30px #38ff6a33;background:radial-gradient(circle,#06200d 0%,#020a04 75%)}
+#infoRow{margin-top:12px;display:flex;align-items:center;gap:10px}
+#info{font-size:18px;letter-spacing:2px;text-shadow:0 0 8px #38ff6a}
+canvas#arrow{width:44px;height:44px}
+#btns{margin-top:10px;display:flex;gap:6px}
+button.b{background:#04150a;color:#38ff6a;border:1px solid #38ff6a;padding:8px 10px;font-family:inherit;font-size:14px;cursor:pointer;border-radius:6px}
+#hint{margin-top:8px;font-size:11px;opacity:.6;text-align:center}
+.panel{width:100%;border:1px solid #38ff6a88;border-radius:8px;background:#03120a;display:flex;flex-direction:column;min-height:0;margin-bottom:8px}
+#chatPanel{flex:3}#contPanel{flex:1.2}
+.panel h3{margin:0;padding:8px;font-size:13px;border-bottom:1px solid #38ff6a55;letter-spacing:2px;display:flex;justify-content:space-between;align-items:center}
+#back{display:none;background:#04150a;color:#38ff6a;border:1px solid #38ff6a;border-radius:4px;font-family:inherit;font-size:11px;cursor:pointer}
+#log{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;flex-direction:column;max-width:82%}
+.row.me{align-self:flex-end;align-items:flex-end}.row.them{align-self:flex-start;align-items:flex-start}
+.who{font-size:10px;opacity:.6;margin:0 6px 2px}
+.bub{padding:8px 12px;border-radius:16px;font-size:14px;line-height:1.35;word-break:break-word;position:relative}
+.me .bub{background:#0f5a2a;border:1px solid #38ff6a;border-bottom-right-radius:4px;color:#eaffef}
+.them .bub{background:#07220f;border:1px solid #38ff6a66;border-bottom-left-radius:4px}
+.react{position:absolute;bottom:-12px;right:8px;font-size:13px;background:#020a04;border:1px solid #38ff6a66;border-radius:10px;padding:0 5px;cursor:default}
+.row.hasr{margin-bottom:10px}
+.rbar{display:none;gap:4px;margin:3px 4px 0;background:#020a04;border:1px solid #38ff6a66;border-radius:14px;padding:2px 6px;font-size:15px}
+.row:hover .rbar{display:flex}
+.rbar span{cursor:pointer}
+#emo{display:none;flex-wrap:wrap;gap:2px;padding:6px;border-top:1px solid #38ff6a55;max-height:84px;overflow-y:auto;background:#020a04}
+#emo span{font-size:21px;cursor:pointer;padding:2px 3px;border-radius:6px}#emo span:hover{background:#0b3a1a}
+#form{display:flex;border-top:1px solid #38ff6a55;align-items:center}
+#smile{border:0;background:none;font-size:20px;cursor:pointer;padding:0 8px}
+#msg{flex:1;min-width:0;background:#020a04;color:#38ff6a;border:0;padding:10px 4px;font-family:inherit;font-size:14px;outline:none}
+#send{border:0;border-left:1px solid #38ff6a55;background:#04150a;color:#38ff6a;padding:10px 12px;cursor:pointer;font-family:inherit}
+#list{flex:1;overflow-y:auto}
+.contact{padding:8px 10px;border-bottom:1px solid #38ff6a22;cursor:pointer;display:flex;justify-content:space-between;font-size:13px}
+.contact.active{background:#0b3a1a;text-shadow:0 0 8px #38ff6a}.dst{opacity:.6;font-size:11px}
+#sw{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+#tog{width:64px;height:30px;border-radius:15px;border:2px solid #aa2222;background:#3a0808;position:relative;cursor:pointer;box-shadow:0 0 10px #ff222244}
+#knob{position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#ff3030;box-shadow:0 0 10px #ff3030;transition:left .2s}
+#tog.on{background:#0b3a1a;border-color:#38ff6a}#tog.on #knob{left:36px;background:#38ff6a;box-shadow:0 0 10px #38ff6a}
+#swl{font-size:14px;letter-spacing:2px;color:#ff5050}#swl.on{color:#38ff6a}
+canvas#g{width:70%;aspect-ratio:1/2;max-height:46%}
+#name{font-size:17px;letter-spacing:3px;text-shadow:0 0 8px #38ff6a;margin:4px 0}
+#actions{width:100%;display:flex;flex-direction:column;gap:8px;margin-top:auto}
+.act{background:#04150a;color:#38ff6a;border:1px solid #38ff6a;border-radius:10px;padding:14px 10px;font-family:inherit;font-size:15px;cursor:pointer;box-shadow:0 0 12px #38ff6a33}
+.act:active{background:#38ff6a;color:#020a04}
+#toast{height:16px;font-size:11px;opacity:.8;margin:4px 0}
+</style></head>
+<body>
+<div id="stage"><div id="phone">
+<div id="pages">
+ <div class="page"><canvas id="c" width="800" height="800"></canvas>
+  <div id="infoRow"><canvas id="arrow" width="88" height="88"></canvas><div id="info">---</div></div>
+  <div id="btns"><button class="b" id="near">Ближе</button><button class="b" id="far">Дальше</button><button class="b" id="rnd">Случайно</button></div>
+  <div id="hint">Нажмите на экран, чтобы включить звук.<br>Листайте пальцем или стрелками ← →</div></div>
+ <div class="page">
+  <div class="panel" id="chatPanel"><h3><span id="chatTitle">ОБЩИЙ ЧАТ · 1 КМ</span><button id="back">← общий</button></h3><div id="log"></div>
+   <div id="emo"></div>
+   <div id="form"><button id="smile">😊</button><input id="msg" placeholder="сообщение..." autocomplete="off"><button id="send">➤</button></div></div>
+  <div class="panel" id="contPanel"><h3>КОНТАКТЫ В ЭФИРЕ</h3><div id="list"></div></div></div>
+ <div class="page">
+  <div id="sw"><span id="swl">OFF</span><div id="tog"><div id="knob"></div></div></div>
+  <canvas id="g" width="220" height="440"></canvas><div id="name">---</div><div id="toast"></div>
+  <div id="actions"><button class="act" id="callBtn">ПОЗВОНИТЬ</button><button class="act" id="smsBtn">НАПИСАТЬ</button><button class="act" id="vidBtn">ВИДЕОСВЯЗЬ</button></div></div>
+</div>
+<div id="dots"><div class="dot on"></div><div class="dot"></div><div class="dot"></div></div>
+</div></div>
+<script>
+const $=id=>document.getElementById(id);
+const ctx=$('c').getContext('2d'),gx=$('g').getContext('2d'),ax=$('arrow').getContext('2d');
+const R=380,CX=400,CY=400,MAXD=50,TAU=Math.PI*2;
+let blips=[],audio=null,lastBeep=0,chatMode='public',onAir=true,pageIdx=0;
+const rnd=()=>Math.random()*TAU;
+const contacts=[
+ {name:'LERA',dist:12,ang:rnd(),hair:'tails',dress:'trap',msgs:[{n:'LERA',t:'я у входа, где ты? 👀'}]},
+ {name:'MASHA',dist:30,ang:rnd(),hair:'bob',dress:'straight',msgs:[{n:'MASHA',t:'привет! 😄'}]},
+ {name:'ALISA',dist:7,ang:rnd(),hair:'bun',dress:'tri',msgs:[]},
+ {name:'KATYA',dist:44,ang:rnd(),hair:'long',dress:'trap',msgs:[{n:'KATYA',t:'я далеко, жду 😎'}]}];
+let cur=contacts[0];const pub=[];
+function toast(t){$('toast').textContent=t}
+function setTarget(c){cur=c;blips=[];$('name').textContent=c.name;toast('')}
+function goPage(i){pageIdx=Math.max(0,Math.min(2,i));$('pages').style.transform='translateX(-'+pageIdx*33.3333+'%)';document.querySelectorAll('.dot').forEach((d,k)=>d.classList.toggle('on',k===pageIdx))}
+document.querySelectorAll('.dot').forEach((d,k)=>d.onclick=()=>goPage(k));
+window.addEventListener('keydown',e=>{if(document.activeElement===$('msg'))return;if(e.key==='ArrowRight')goPage(pageIdx+1);if(e.key==='ArrowLeft')goPage(pageIdx-1)});
+let sx=null;const ph=$('phone');
+ph.addEventListener('pointerdown',e=>{sx=e.clientX});
+ph.addEventListener('pointerup',e=>{if(sx===null)return;const dx=e.clientX-sx;sx=null;if(Math.abs(dx)>90)goPage(pageIdx+(dx<0?1:-1))});
+window.addEventListener('pointerdown',()=>{if(!audio)audio=new(window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume()});
+function beep(f,l){if(!audio)return;const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=f;g.gain.setValueAtTime(.0001,audio.currentTime);g.gain.exponentialRampToValueAtTime(.35,audio.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+l);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+l+.02)}
+function setAir(v){onAir=v;$('tog').classList.toggle('on',v);$('swl').classList.toggle('on',v);$('swl').textContent=v?'ON':'OFF';
+ if(!v){blips=[];toast('Вы не в эфире: геолокация и чаты отключены')}else toast('Вы в эфире');renderContacts();renderChat()}
+$('tog').onclick=()=>setAir(!onAir);
+$('near').onclick=()=>{cur.dist=Math.max(.5,cur.dist-3);renderContacts()};
+$('far').onclick=()=>{cur.dist=Math.min(MAXD,cur.dist+3);renderContacts()};
+$('rnd').onclick=()=>{cur.dist=1+Math.random()*(MAXD-1);cur.ang=rnd();renderContacts()};
+$('callBtn').onclick=()=>toast(onAir?'Звоним: '+cur.name+'... (демо)':'Включите ON');
+$('vidBtn').onclick=()=>toast(onAir?'Видеосвязь с '+cur.name+'... (демо)':'Включите ON');
+$('smsBtn').onclick=()=>{if(!onAir){toast('Включите ON');return}chatMode='private';renderChat();goPage(1);$('msg').focus()};
+function L(...p){gx.beginPath();gx.moveTo(p[0],p[1]);for(let i=2;i<p.length;i+=2)gx.lineTo(p[i],p[i+1]);gx.stroke()}
+function C(x,y,r){gx.beginPath();gx.arc(x,y,r,0,TAU);gx.stroke()}
+function figure(c,a){
+ gx.clearRect(0,0,220,440);if(a<=.02)return;
+ gx.save();gx.globalAlpha=a;gx.strokeStyle='#38ff6a';gx.lineWidth=4;gx.lineJoin=gx.lineCap='round';gx.shadowColor='#38ff6a';gx.shadowBlur=18;
+ C(110,70,36);
+ if(c.hair==='tails'){C(66,58,12);C(154,58,12);gx.beginPath();gx.moveTo(80,56);gx.quadraticCurveTo(110,30,140,56);gx.stroke()}
+ else if(c.hair==='bob'){gx.beginPath();gx.moveTo(74,80);gx.lineTo(74,56);gx.quadraticCurveTo(110,14,146,56);gx.lineTo(146,80);gx.stroke()}
+ else if(c.hair==='bun'){C(110,26,13);gx.beginPath();gx.moveTo(78,56);gx.quadraticCurveTo(110,34,142,56);gx.stroke()}
+ else{L(76,64,70,150);L(144,64,150,150);gx.beginPath();gx.moveTo(78,56);gx.quadraticCurveTo(110,30,142,56);gx.stroke()}
+ C(96,74,3);C(124,74,3);gx.beginPath();gx.arc(110,84,10,.15*Math.PI,.85*Math.PI);gx.stroke();
+ L(110,106,110,120);
+ if(c.dress==='trap')L(86,120,134,120,166,260,54,260,86,120);
+ else if(c.dress==='tri')L(86,120,134,120,180,260,40,260,86,120);
+ else L(86,120,134,120,138,250,82,250,86,120);
+ L(86,128,48,200);L(134,128,172,200);L(88,260,88,370,68,376);L(132,260,132,370,152,376);
+ gx.restore()}
+function arrow(a){ax.clearRect(0,0,88,88);if(!onAir)return;ax.save();ax.translate(44,44);ax.rotate(a+Math.PI/2);ax.strokeStyle='#38ff6a';ax.lineWidth=5;ax.lineJoin='round';ax.shadowColor='#38ff6a';ax.shadowBlur=12;
+ ax.beginPath();ax.moveTo(0,-30);ax.lineTo(18,5);ax.lineTo(6,5);ax.lineTo(6,28);ax.lineTo(-6,28);ax.lineTo(-6,5);ax.lineTo(-18,5);ax.closePath();ax.stroke();ax.restore()}
+// ---- чат: смайлики, пузырьки, реакции ----
+const EMO=['😀','😂','🥰','😎','🤩','😜','🥳','😭','😡','🤔','😱','👍','👎','👏','🙌','🙏','💪','👀','🔥','✨','💖','💚','💥','🎉','🎈','🎁','🍕','🍔','🍦','☕','🐙','🦄','🐱','🐶','👻','👽','🤖','🚀','⭐','🌈'];
+const REACT=['❤️','😂','🔥','👍','😮'];
+const myNum=String(Math.floor(1e8+Math.random()*9e8));
+const phr=['привет всем 👋','кто рядом? 👀','слышно радар? 📡','пим-пим-пим 🔊','я у фонтана ⛲','ау, есть кто? 🙋','скучно... 😴','кто за мороженое? 🍦'];
+const rep=['ага 👍','иду к тебе 🏃','вижу тебя на радаре! 📡','подожди меня ⏳','хорошо 😊','где именно? 🤔','ха-ха 😂'];
+const emo=$('emo');EMO.forEach(e=>{const s=document.createElement('span');s.textContent=e;s.onclick=()=>{$('msg').value+=e;$('msg').focus()};emo.appendChild(s)});
+$('smile').onclick=()=>{emo.style.display=emo.style.display==='flex'?'none':'flex'};
+function curArr(){return chatMode==='public'?pub:cur.msgs}
+function renderChat(){const log=$('log');log.innerHTML='';
+ if(!onAir){log.innerHTML='<div class="who">вы не в эфире (OFF)</div>';return}
+ curArr().forEach((m,idx)=>{
+  const row=document.createElement('div');row.className='row '+(m.me?'me':'them')+(m.r?' hasr':'');
+  const who=document.createElement('div');who.className='who';who.textContent=m.me?'вы':(chatMode==='public'?'#'+m.n:m.n);
+  const b=document.createElement('div');b.className='bub';b.textContent=m.t;
+  if(m.r){const r=document.createElement('span');r.className='react';r.textContent=m.r;b.appendChild(r)}
+  const bar=document.createElement('div');bar.className='rbar';
+  REACT.forEach(e=>{const s=document.createElement('span');s.textContent=e;s.onclick=()=>{m.r=(m.r===e?null:e);renderChat()};bar.appendChild(s)});
+  row.appendChild(who);row.appendChild(b);row.appendChild(bar);log.appendChild(row)});
+ log.scrollTop=log.scrollHeight;
+ if(chatMode==='public'){$('chatTitle').textContent='ОБЩИЙ ЧАТ · 1 КМ';$('back').style.display='none'}else{$('chatTitle').textContent='ЛИЧНЫЙ · '+cur.name;$('back').style.display='inline-block'}}
+function renderContacts(){const l=$('list');l.innerHTML='';if(!onAir){l.innerHTML='<div class="contact">список скрыт (OFF)</div>';return}
+ contacts.forEach(c=>{const d=document.createElement('div');d.className='contact'+(c===cur?' active':'');d.innerHTML='<span>'+c.name+'</span><span class="dst">'+c.dist.toFixed(0)+' м</span>';d.onclick=()=>{setTarget(c);chatMode='private';renderContacts();renderChat()};l.appendChild(d)})}
+$('back').onclick=()=>{chatMode='public';renderChat()};
+function send(){const t=$('msg').value.trim();if(!t||!onAir)return;
+ if(chatMode==='public')pub.push({n:myNum,t,me:true});
+ else{const c=cur;c.msgs.push({n:'ВЫ',t,me:true});setTimeout(()=>{c.msgs.push({n:c.name,t:rep[Math.floor(Math.random()*rep.length)]});if(chatMode==='private'&&cur===c)renderChat()},1500)}
+ $('msg').value='';renderChat()}
+$('send').onclick=send;$('msg').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+pub.push({n:'SYSTEM',t:'вы: #'+myNum+' — общий чат в радиусе 1 км (демо) 📡'});
+setInterval(()=>{if(!onAir)return;pub.push({n:String(Math.floor(1e8+Math.random()*9e8)),t:phr[Math.floor(Math.random()*phr.length)]});if(chatMode==='public')renderChat()},4500);
+setTarget(contacts[0]);setAir(true);toast('');
+// ---- радар ----
+function draw(t){
+ ctx.clearRect(0,0,800,800);ctx.strokeStyle='#38ff6a55';ctx.lineWidth=2;
+ for(let i=1;i<=4;i++){ctx.beginPath();ctx.arc(CX,CY,R*i/4,0,TAU);ctx.stroke()}
+ ctx.beginPath();ctx.moveTo(CX-R,CY);ctx.lineTo(CX+R,CY);ctx.moveTo(CX,CY-R);ctx.lineTo(CX,CY+R);ctx.stroke();
+ ctx.fillStyle='#38ff6a99';ctx.font='24px Courier New';for(let i=1;i<=4;i++)ctx.fillText((MAXD*i/4)+'m',CX+6,CY-R*i/4+24);
+ const phase=(t/1000*1.6)%(TAU*2),sweep=phase%TAU;
+ for(let i=0;i<40;i++){const a=sweep-i*.03;ctx.strokeStyle='rgba(56,255,106,'+(.5-i*.0125)+')';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(CX+Math.cos(a)*R,CY+Math.sin(a)*R);ctx.stroke()}
+ if(onAir){
+  const tx=CX+Math.cos(cur.ang)*R*cur.dist/MAXD,ty=CY+Math.sin(cur.ang)*R*cur.dist/MAXD;
+  if(((sweep-cur.ang)%TAU+TAU)%TAU<.08)blips.push({x:tx,y:ty,life:1});
+  blips=blips.filter(b=>b.life>0);
+  blips.forEach(b=>{ctx.fillStyle='rgba(120,255,160,'+b.life+')';ctx.shadowColor='#38ff6a';ctx.shadowBlur=20;ctx.beginPath();ctx.arc(b.x,b.y,12,0,TAU);ctx.fill();ctx.shadowBlur=0;b.life-=.006});
+  if(audio&&t-lastBeep>250+cur.dist/MAXD*1400){lastBeep=t;beep(500+(1-cur.dist/MAXD)*700,.09)}
+ }
+ ctx.fillStyle='#38ff6a';ctx.beginPath();ctx.arc(CX,CY,7,0,TAU);ctx.fill();
+ figure(cur,onAir&&phase<TAU?1:0);
+ arrow(cur.ang);
+ $('info').textContent=onAir?cur.name+': '+cur.dist.toFixed(1)+' M':'OFF';
+ requestAnimationFrame(draw)}
+requestAnimationFrame(draw);
+</script></body></html>
